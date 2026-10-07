@@ -23,6 +23,12 @@ netlify dev
 
 Open the local URL and choose a supported asset. The serverless function requires two independent responses; otherwise it returns `INSUFFICIENT_INDEPENDENT_SOURCES`.
 
+Run the deterministic endpoint checks with:
+
+```bash
+node --test test/consensus.test.js
+```
+
 ## Hackathon disclosure
 
 This project uses the simulated Alexa+ experience path expressly described in the competition requirements. It is not connected to a consumer Alexa account and does not claim certification or endorsement by Amazon.
