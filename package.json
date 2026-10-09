@@ -1,0 +1,22 @@
+{
+  "name": "velqiris-alexa-market-truth",
+  "version": "1.0.0",
+  "description": "VELQIRIS Market Truth & Consensus MCP Server and Alexa+ Simulation",
+  "main": "mcp_server.js",
+  "scripts": {
+    "test": "node --test test/consensus.test.js test/mcp_server.test.js",
+    "verify:mcp": "node scripts/verify_amazon_mcp.js",
+    "start": "node mcp_server.js",
+    "start:http": "node http_mcp_server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "market-truth",
+    "alexa-agentic",
+    "cryptographic-evidence",
+    "consensus"
+  ],
+  "author": "VELQIRIS Acquisition",
+  "license": "MIT"
+}

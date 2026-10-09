@@ -49,3 +49,7 @@ exports.handler = async (event) => {
   if (input.intent === 'risk_check') return json(200, { ...base, regime: null, confidence: 0, risk_status: 'INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST', spoken_response: `The ${symbol} spot snapshot is verified across ${values.length} venues, but a market regime cannot be inferred from one point in time.` })
   return json(200, { ...base, spoken_response: `The verified ${symbol} consensus is ${consensus.toFixed(2)} US dollars across ${values.length} independent venues.` })
 }
+
+exports.collectPrices = collectPrices
+exports.median = median
+exports.ALLOWED_SYMBOLS = ALLOWED_SYMBOLS
