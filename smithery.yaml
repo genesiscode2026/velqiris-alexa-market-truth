@@ -1,0 +1,14 @@
+startCommand:
+  type: stdio
+  config: {}
+
+configSchema:
+  type: object
+  properties: {}
+
+commandFunction: |-
+  (config) => ({
+    command: "node",
+    args: ["mcp_server.js"],
+    env: {}
+  })
