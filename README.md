@@ -68,6 +68,33 @@ Start local Netlify development server:
 netlify dev
 ```
 
+## Installation via Smithery & Claude Desktop
+
+To install this MCP server into Claude Desktop via Smithery:
+```bash
+npx -y @smithery/cli install @genesiscode2026/velqiris-alexa-market-truth --client claude
+```
+
+Or configure manually in your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "velqiris-market-truth": {
+      "command": "node",
+      "args": ["/path/to/velqiris-alexa-market-truth/mcp_server.js"]
+    }
+  }
+}
+```
+
+## Commercial Dual-Licensing & Base USDC Settlement
+
+- **Open Source:** MIT License for personal, educational, and developer evaluation.
+- **Enterprise / Commercial License:** $299 USDC (Base) for proprietary commercial applications, algorithmic trading bots, and SLA support.
+- **Instant Settlement:** Direct USDC payment on Base network to custody address:
+  `0xC6F86e170411182114FcCdb28793dC76B5e8D144`
+- **Modular Acquisition & Full Buyout:** Visit [VELQIRIS Commercial Licensing](https://velqiris-acquisition.netlify.app/#licensing).
+
 ## Hackathon Disclosure
 
 This project implements the Model Context Protocol (MCP) and uses the simulated Alexa+ experience path expressly described in the competition requirements. It is not connected to a proprietary consumer Alexa account and does not claim certification or endorsement by Amazon.
