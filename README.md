@@ -72,7 +72,7 @@ netlify dev
 
 To install this MCP server into Claude Desktop via Smithery:
 ```bash
-npx -y @smithery/cli install @genesiscode2026/velqiris-alexa-market-truth --client claude
+npx -y smithery mcp add chitara-trading/velqiris-market-truth
 ```
 
 Or configure manually in your `claude_desktop_config.json`:
@@ -87,13 +87,12 @@ Or configure manually in your `claude_desktop_config.json`:
 }
 ```
 
-## Commercial Dual-Licensing & Base USDC Settlement
+## Open-Source Core & Optional Deployment Package
 
-- **Open Source:** MIT License for personal, educational, and developer evaluation.
-- **Enterprise / Commercial License:** $299 USDC (Base) for proprietary commercial applications, algorithmic trading bots, and SLA support.
-- **Instant Settlement:** Direct USDC payment on Base network to custody address:
-  `0xC6F86e170411182114FcCdb28793dC76B5e8D144`
-- **Modular Acquisition & Full Buyout:** Visit [VELQIRIS Commercial Licensing](https://velqiris-acquisition.netlify.app/#licensing).
+- **Open-source reference implementation:** This repository is MIT licensed, including commercial-use rights under the terms of the MIT License.
+- **Optional serverless/x402 source package:** A separately maintained Netlify-compatible deployment bundle with wallet-bound Base settlement, signed fulfillment, and packaged release evidence is available for 49 USDC.
+- **Settlement invariant:** The optional package accepts native USDC on Base only, through the verified checkout flow.
+- **Licensing and acquisition:** See [VELQIRIS Commercial Licensing](https://velqiris-acquisition.netlify.app/portfolio.html) for the exact package scope and current terms.
 
 ## Hackathon Disclosure
 
