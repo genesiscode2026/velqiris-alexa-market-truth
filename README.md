@@ -63,6 +63,13 @@ Start the MCP stdio server:
 node mcp_server.js
 ```
 
+Run the remote MCP server in a production container:
+```bash
+docker build -t velqiris-market-truth .
+docker run --rm -p 3333:3333 velqiris-market-truth
+curl http://127.0.0.1:3333/health
+```
+
 Start local Netlify development server:
 ```bash
 netlify dev

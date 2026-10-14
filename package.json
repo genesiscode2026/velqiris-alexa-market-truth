@@ -18,5 +18,8 @@
     "consensus"
   ],
   "author": "VELQIRIS Acquisition",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
 }
