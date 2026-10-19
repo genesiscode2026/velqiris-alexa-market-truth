@@ -17,22 +17,25 @@ It operates under two complementary paths:
 ## 2. Quick Verification (Run in 1 Command)
 
 ```bash
-# 1. Run unit test suite (11 assertions)
+# 1. Run unit and acceptance test suites (23 assertions)
 npm test
 
-# 2. Run official Streamable HTTP MCP Protocol Verifier (40 assertions)
+# 2. Run internal Streamable HTTP & Serverless MCP Protocol Test Suite (40 assertions)
 npm run verify:mcp
+
+# 3. Optional: Run live smoke test against external exchanges
+npm run test:live
 ```
 
 ### Expected Output:
 ```
-✔ All 11 MCP Server test assertions PASSED.
+✔ All 23 test assertions across 4 test suites PASSED.
 
 ========================================================================
-VERIFICATION COMPLETE: 40/40 STEPS PASSED (100%)
-STATUS: AMAZON_MCP_2025_11_25 = PASS
-STATUS: STREAMABLE_HTTP = PASS
-STATUS: SIMULATED_ALEXA_EXPERIENCE = PASS (Active fallback & UI demo)
+INTERNAL VERIFICATION COMPLETE: 40/40 ASSERTIONS PASSED
+SPECIFICATION: Model Context Protocol (v2025-11-25)
+TRANSPORTS: Streamable HTTP (Local Stateful) & Netlify HTTP (Stateless)
+STATUS: ALL ASSERTIONS PASSED
 ========================================================================
 ```
 

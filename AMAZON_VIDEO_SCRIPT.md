@@ -47,16 +47,16 @@
 
 ---
 
-### [02:10 - 02:35] SCENE 5: BEYOND A BASIC API WRAPPER
-- **Visual:** Code architecture diagram showing the consensus filter, outlier rejection, latency circuit breakers, and institutional settlement invariants.
-- **On-Screen Text:** *Institutional Truth Layer: Outlier Filtering · Latency Bounds · Fail-Closed Semantics*
+### [02:10 - 02:35] SCENE 5: TRUTH BEFORE CONVENIENCE (CODE REALITY)
+- **Visual:** Architecture flow showing the multi-venue query fanout to Coinbase, Binance, and OKX, the mathematical median consensus calculation, and the 3500ms timeout bounds.
+- **On-Screen Text:** *Core Architecture: Multi-Venue Fanout · Mathematical Median · Fail-Closed Bounds*
 - **Voiceover:**
-  > "This is not an API wrapper. It is a resilient truth engine: it filters exchange outliers, enforces strict timeout bounds to preserve voice turn budgets, and guarantees zero ungrounded responses under network partitions."
+  > "Under the hood, the architecture is simple and uncompromised: it queries independent exchange endpoints concurrently, computes the mathematical median across responding venues, measures basis-point spread, and aborts if fewer than two sources answer. No mock fallbacks, no fabricated regimes."
 
 ---
 
-### [02:35 - 02:50] SCENE 6: IMPACT & OPEN SOURCE ECOSYSTEM
-- **Visual:** GitHub repository `genesiscode2026/velqiris-alexa-market-truth`, MIT License, Smithery manifest, and detailed Developer Friction Log.
-- **On-Screen Text:** *Open Source (MIT) · Detailed Friction Log Provided for Amazon Engineers*
+### [02:35 - 02:50] SCENE 6: IMPACT & OPEN SOURCE REPOSITORY
+- **Visual:** GitHub repository `genesiscode2026/velqiris-alexa-market-truth`, MIT License, and the developer Friction Log answering the six mandatory Amazon feedback questions.
+- **On-Screen Text:** *Open Source (MIT) · Full Developer Friction Log for Amazon Engineering*
 - **Voiceover:**
-  > "VELQIRIS brings institutional evidence directly into the Alexa agentic ecosystem. All code is open-source under MIT, with full setup guides and a detailed Developer Friction Log. Thank you."
+  > "VELQIRIS brings verified multi-venue market consensus into the Alexa agentic ecosystem. The repository is open-source under MIT with automated tests and our full developer friction log. Thank you."

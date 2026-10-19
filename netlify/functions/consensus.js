@@ -11,13 +11,14 @@ async function fetchJson(url) {
 }
 
 async function collectPrices(symbol) {
+  const fetcher = exports._fetchJson || fetchJson
   const requests = [
     ['coinbase', `https://api.coinbase.com/v2/prices/${symbol}-USD/spot`, (d) => Number(d.data.amount)],
     ['binance', `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`, (d) => Number(d.price)],
     ['okx', `https://www.okx.com/api/v5/market/ticker?instId=${symbol}-USDT`, (d) => Number(d.data[0].last)],
   ]
   const settled = await Promise.allSettled(requests.map(async ([name, url, parse]) => {
-    const value = parse(await fetchJson(url))
+    const value = parse(await fetcher(url))
     if (!Number.isFinite(value) || value <= 0) throw new Error('INVALID_PRICE')
     return [name, value]
   }))
@@ -36,7 +37,10 @@ exports.handler = async (event) => {
 
   let input
   try { input = JSON.parse(event.body || '{}') } catch { return json(400, { error: 'INVALID_JSON' }) }
-  const symbol = String(input.symbol || 'BTC').toUpperCase()
+  if (!input || typeof input.symbol !== 'string' || !input.symbol.trim()) {
+    return json(400, { error: 'MISSING_SYMBOL', message: 'Missing required argument "symbol".' })
+  }
+  const symbol = input.symbol.trim().toUpperCase()
   if (!ALLOWED_SYMBOLS.has(symbol)) return json(400, { error: 'UNSUPPORTED_SYMBOL' })
 
   const prices = await collectPrices(symbol)

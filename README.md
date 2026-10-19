@@ -1,12 +1,12 @@
 # VELQIRIS Alexa+ & Model Context Protocol (MCP) Market Truth Server
 
 A verified market truth consensus engine implementing:
-1. **Model Context Protocol (MCP)** server (`http_mcp_server.js` and `mcp_server.js`) compliant with JSON-RPC 2.0 and Streamable HTTP transport (protocol version `2025-11-25 or later`).
-2. **Alexa+ Web Simulation** (`public/index.html` + `netlify/functions/consensus.js`) for the Alexa+ agentic track of the Amazon Build, Ship, Shape hackathon.
+1. **Model Context Protocol (MCP)** server (`http_mcp_server.js`, `mcp_server.js`, and `netlify/functions/amazon-mcp.js`) compliant with JSON-RPC 2.0 (protocol version `2025-11-25`).
+2. **Alexa+ Web Simulation & In-Browser MCP Client** (`public/index.html` / `sale_site/alexa-simulation.html`) implementing the complete client lifecycle (`initialize` -> `notifications/initialized` -> `tools/list` -> `tools/call`).
 
 It answers spot-price questions only when at least two independent venues respond and strictly refuses to invent a market regime from a point-in-time snapshot (fail-closed).
 
-## Live Demo (Simulated Alexa+ Interface)
+## Live Demo (Simulated Alexa+ Interface & MCP Client)
 
 https://velqiris-acquisition.netlify.app/alexa-simulation.html
 
@@ -17,9 +17,12 @@ https://velqiris-acquisition.netlify.app/alexa-simulation.html
 VELQIRIS implements a standard MCP server for agentic AI architectures (Claude Desktop, MCP clients, Amazon Alexa Agentic workflows):
 
 ### Protocol Details
-- **Transport**: Streamable HTTP (`Transfer-Encoding: chunked`) & Standard I/O (stdio)
+- **Transports**:
+  - **Local / Container Streamable HTTP**: Native Node.js HTTP server (`http_mcp_server.js`) with chunked transfer (`Transfer-Encoding: chunked`), session lifecycle tracking (`Mcp-Session-Id`), and Origin validation (403 on untrusted origins).
+  - **Serverless HTTP**: Stateless edge endpoint (`netlify/functions/amazon-mcp.js`) ensuring reliable operation across non-sticky distributed Lambda instances.
+  - **Standard I/O (stdio)**: CLI / desktop MCP adapter (`mcp_server.js`).
 - **Protocol Version**: `2025-11-25` (Amazon Developer & Anthropic specification)
-- **Specification**: JSON-RPC 2.0 with session tracking (`Mcp-Session-Id`)
+- **Specification**: JSON-RPC 2.0 with session tracking and version negotiation
 
 ### Tools Exposed
 - `get_market_truth_consensus`: Fetches multi-venue spot price consensus (Coinbase, Binance, OKX). Fails closed if fewer than 2 independent sources respond.
@@ -41,15 +44,20 @@ VELQIRIS implements a standard MCP server for agentic AI architectures (Claude D
 
 ## Running & Testing Locally
 
-Run all unit and MCP protocol tests:
+Run all unit and MCP protocol tests (deterministic, offline):
 ```bash
 npm test
 ```
 
-Run official Amazon MCP Protocol Compliance Verification (40 assertions):
+Run internal MCP Protocol Verification Test Suite (40 assertions):
 ```bash
 npm run verify:mcp
 # or: node scripts/verify_amazon_mcp.js
+```
+
+Optional: Run network-dependent live smoke test against live venues:
+```bash
+npm run test:live
 ```
 
 Start the Streamable HTTP server:

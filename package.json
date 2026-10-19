@@ -4,7 +4,8 @@
   "description": "VELQIRIS Market Truth & Consensus MCP Server and Alexa+ Simulation",
   "main": "mcp_server.js",
   "scripts": {
-    "test": "node --test test/consensus.test.js test/mcp_server.test.js",
+    "test": "node --test test/consensus.test.js test/mcp_server.test.js test/mcp_streamable_http_acceptance.test.js test/amazon_serverless_mcp.test.js",
+    "test:live": "node --test test/smoke_live.test.js",
     "verify:mcp": "node scripts/verify_amazon_mcp.js",
     "start": "node mcp_server.js",
     "start:http": "node http_mcp_server.js"
@@ -14,7 +15,6 @@
     "model-context-protocol",
     "market-truth",
     "alexa-agentic",
-    "cryptographic-evidence",
     "consensus"
   ],
   "author": "VELQIRIS Acquisition",

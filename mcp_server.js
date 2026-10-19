@@ -7,7 +7,13 @@
  */
 
 const readline = require('readline')
-const { collectPrices, median, ALLOWED_SYMBOLS } = require('./netlify/functions/consensus.js')
+let consensusModule
+try {
+  consensusModule = require('./consensus.js')
+} catch (_) {
+  consensusModule = require('./netlify/functions/consensus.js')
+}
+const { collectPrices, median, ALLOWED_SYMBOLS } = consensusModule
 
 const SERVER_NAME = 'velqiris-market-truth-mcp'
 const SERVER_VERSION = '1.1.0'
@@ -49,9 +55,9 @@ const TOOLS = [
 const RESOURCES = [
   {
     uri: 'velqiris://provenance/policy',
-    name: 'VELQIRIS Market Truth Verification Policy',
+    name: 'VELQIRIS Multi-Venue Consensus Policy',
     mimeType: 'application/json',
-    description: 'Invariants for multi-venue price consensus and fail-closed security rules',
+    description: 'Invariants for multi-venue price consensus and fail-closed regime rules',
   },
   {
     uri: 'velqiris://architecture/summary',
@@ -69,11 +75,17 @@ const RESOURCE_CONTENTS = {
     point_in_time_regime_inference: 'FORBIDDEN',
     payout_rail_invariant: 'USDC on Base: 0xC6F86e170411182114FcCdb28793dC76B5e8D144',
   }, null, 2),
-  'velqiris://architecture/summary': '# VELQIRIS Architecture\n\nVELQIRIS provides cryptographic and consensus-verified market truth before AI agent action.',
+  'velqiris://architecture/summary': '# VELQIRIS Architecture\n\nVELQIRIS provides multi-venue consensus and fail-closed regime gating before AI agent action.',
 }
 
 async function handleToolCall(name, args = {}) {
-  const symbol = String(args.symbol || 'BTC').toUpperCase()
+  if (!args || typeof args.symbol !== 'string' || !args.symbol.trim()) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: 'Error: Missing required argument "symbol".' }],
+    }
+  }
+  const symbol = args.symbol.trim().toUpperCase()
   if (!ALLOWED_SYMBOLS.has(symbol)) {
     return {
       isError: true,
@@ -81,7 +93,26 @@ async function handleToolCall(name, args = {}) {
     }
   }
 
-  const prices = await collectPrices(symbol)
+  if (name === 'verify_risk_regime') {
+    return {
+      isError: false,
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            status: 'INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST',
+            symbol,
+            regime: null,
+            confidence: 0,
+            message: `Market regime inference refused for ${symbol}: Point-in-time snapshots cannot extrapolate regime trends. Historical time series required.`,
+          }, null, 2),
+        },
+      ],
+    }
+  }
+
+  const priceCollector = exports._collectPrices || collectPrices
+  const prices = await priceCollector(symbol)
   const values = Object.values(prices)
 
   if (values.length < 2) {
@@ -104,26 +135,6 @@ async function handleToolCall(name, args = {}) {
 
   const consensus = median(values)
   const spreadBps = ((Math.max(...values) - Math.min(...values)) / consensus) * 10000
-
-  if (name === 'verify_risk_regime') {
-    return {
-      isError: false,
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify({
-            status: 'INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST',
-            symbol,
-            consensus_price_usd: Number(consensus.toFixed(2)),
-            spread_basis_points: Number(spreadBps.toFixed(2)),
-            regime: null,
-            confidence: 0,
-            message: `Spot price verified across ${values.length} venues, but regime inference requires historical time series.`,
-          }, null, 2),
-        },
-      ],
-    }
-  }
 
   return {
     isError: false,
@@ -149,17 +160,6 @@ async function handleRpcRequest(request) {
 
   switch (method) {
     case 'initialize': {
-      const clientProto = params?.protocolVersion
-      if (clientProto && clientProto < '2025-11-25') {
-        return {
-          jsonrpc: '2.0',
-          id,
-          error: {
-            code: -32602,
-            message: `Unsupported protocol version: ${clientProto}. Amazon and MCP specification require 2025-11-25 or later.`,
-          },
-        }
-      }
       return {
         jsonrpc: '2.0',
         id,

@@ -1,5 +1,428 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VELQIRIS × Alexa+ Simulation</title>
-<style>:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#071018;color:#edf7ff}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,#123b53,#071018 48%)}main{width:min(900px,92vw);padding:36px;border:1px solid #27536b;border-radius:24px;background:#091720e8;box-shadow:0 30px 90px #0008}h1{margin:0 0 10px;font-size:clamp(2rem,5vw,4rem)}p{color:#a8c4d3;line-height:1.6}.badge{display:inline-block;padding:7px 11px;border-radius:999px;background:#12394b;color:#7ee6ff;font-size:.78rem;letter-spacing:.08em}.controls{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}select,button{border:1px solid #2e6680;border-radius:12px;background:#0c2532;color:#fff;padding:13px 16px;font:inherit}button{cursor:pointer;background:#0d7897;font-weight:700}button:hover{background:#119abb}.conversation{display:grid;gap:14px}.bubble{padding:18px;border-radius:16px;white-space:pre-wrap}.user{background:#14232c;margin-left:12%}.alexa{background:#0d3444;margin-right:12%;border-left:4px solid #43d8ff}.evidence{font:12px ui-monospace,monospace;color:#9ec4d4;background:#050b0f;padding:18px;border-radius:14px;overflow:auto;min-height:110px}.notice{font-size:.85rem;color:#ffcf7a}a{color:#72dcff}</style></head>
-<body><main><span class="badge">AMAZON HACKATHON · SIMULATED ALEXA+ EXPERIENCE</span><h1>Truth before confidence.</h1><p>VELQIRIS demonstrates how an Alexa+ financial experience can answer with a live multi-venue snapshot while refusing to invent a market regime without time-series evidence.</p><div class="controls"><select id="symbol" aria-label="Asset"><option>BTC</option><option>ETH</option><option>SOL</option><option>ICP</option></select><button data-intent="consensus">Ask consensus price</button><button data-intent="risk_check">Ask market regime</button></div><section class="conversation" aria-live="polite"><div class="bubble user" id="user">Choose a question to begin.</div><div class="bubble alexa" id="alexa">Alexa+ simulation ready.</div><pre class="evidence" id="evidence">No request yet.</pre></section><p class="notice">Disclosure: this is the officially permitted simulated-experience path, not a claim of connection to a consumer Alexa account. Market data is informational, not financial advice.</p><p><a href="/">Back to VELQIRIS</a></p></main>
-<script>const user=document.querySelector('#user'),alexa=document.querySelector('#alexa'),evidence=document.querySelector('#evidence'),symbol=document.querySelector('#symbol');for(const button of document.querySelectorAll('button'))button.addEventListener('click',async()=>{const intent=button.dataset.intent,asset=symbol.value;user.textContent=intent==='risk_check'?`Alexa, what is the market regime for ${asset}?`:`Alexa, what is the verified consensus price for ${asset}?`;alexa.textContent='Checking independent venues…';evidence.textContent='Request in progress';try{const response=await fetch('/.netlify/functions/consensus',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,symbol:asset})});const data=await response.json();alexa.textContent=data.spoken_response||data.error;evidence.textContent=JSON.stringify(data,null,2)}catch(error){alexa.textContent='The data service is unavailable. I will not guess.';evidence.textContent=String(error)}});</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VELQIRIS Market Truth — Real MCP Client & Alexa+ Simulation</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --bg: #071018;
+      --card-bg: rgba(9, 23, 32, 0.92);
+      --border: #20465c;
+      --text: #edf7ff;
+      --muted: #94b5c7;
+      --cyan: #43d8ff;
+      --cyan-dark: #0d7897;
+      --green: #48bb78;
+      --amber: #ecc94b;
+      --red: #f56565;
+      --code-bg: #04090d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 10%, #123b53, var(--bg) 55%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+    main {
+      width: min(940px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    header {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: #12394b;
+      color: var(--cyan);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      letter-spacing: -0.02em;
+    }
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .mcp-bar {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    .mcp-bar input {
+      flex: 1;
+      min-width: 220px;
+      background: #091720;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.82rem;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--amber);
+      display: inline-block;
+    }
+    .status-dot.connected { background: var(--green); }
+    .status-dot.error { background: var(--red); }
+    
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, button {
+      border: 1px solid #2e6680;
+      border-radius: 10px;
+      background: #0c2532;
+      color: #fff;
+      padding: 12px 18px;
+      font: inherit;
+      font-size: 0.95rem;
+    }
+    button {
+      cursor: pointer;
+      background: var(--cyan-dark);
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: #119abb;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .dialog-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .bubble {
+      padding: 16px 20px;
+      border-radius: 14px;
+      line-height: 1.5;
+    }
+    .bubble.user {
+      background: #142834;
+      align-self: flex-start;
+      border-left: 4px solid var(--cyan);
+    }
+    .bubble.alexa {
+      background: #0d3444;
+      border-left: 4px solid var(--green);
+    }
+    .bubble.alexa.regime-refusal {
+      border-left: 4px solid var(--amber);
+    }
+    
+    .mcp-inspector {
+      border: 1px solid var(--border);
+      background: var(--code-bg);
+      border-radius: 14px;
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.8rem;
+      color: #a4cad9;
+      overflow-x: auto;
+      max-height: 380px;
+    }
+    .mcp-inspector-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--cyan);
+      border-bottom: 1px solid #142a38;
+      padding-bottom: 6px;
+    }
+    .disclaimer {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="badge">Model Context Protocol (v2025-11-25) · Real In-Browser Client</span>
+    <h1>VELQIRIS Market Truth Consensus</h1>
+    <p class="lead">
+      An in-browser Model Context Protocol (MCP) client communicating over Streamable HTTP.
+      It executes the full MCP lifecycle: <strong>initialize</strong>, <strong>notifications/initialized</strong>, 
+      <strong>tools/list</strong>, and <strong>tools/call</strong>.
+    </p>
+
+    <div class="mcp-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Connecting to MCP Server…</span>
+      <input id="endpointInput" value="" placeholder="MCP Endpoint URL">
+      <button id="reconnectBtn" style="padding: 8px 14px; font-size: 0.82rem;">Handshake</button>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="controls">
+      <label for="symbolSelect" style="font-weight: 600;">Asset:</label>
+      <select id="symbolSelect">
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="ETH">Ethereum (ETH)</option>
+        <option value="SOL">Solana (SOL)</option>
+        <option value="ICP">Internet Computer (ICP)</option>
+      </select>
+
+      <button id="consensusBtn" data-tool="get_market_truth_consensus">
+        Ask Consensus Price
+      </button>
+      <button id="regimeBtn" data-tool="verify_risk_regime">
+        Ask Market Regime (Fail-Closed)
+      </button>
+    </div>
+
+    <div class="dialog-area">
+      <div class="bubble user" id="userBubble">Choose an asset and click an action to invoke an MCP tool.</div>
+      <div class="bubble alexa" id="alexaBubble">Client ready. MCP handshake in progress…</div>
+    </div>
+
+    <div class="mcp-inspector">
+      <div class="mcp-inspector-header">
+        <span>MCP PROTOCOL TELEMETRY (JSON-RPC 2.0 / STREAMABLE HTTP)</span>
+        <span id="sessionIdTag">Session: none</span>
+      </div>
+      <pre id="telemetryPre" style="margin: 0;">No MCP transactions recorded yet.</pre>
+    </div>
+
+    <p class="disclaimer">
+      <strong>Engineering Truth Disclosure:</strong> Spot consensus is calculated as the statistical median across independent USD/USDT spot indications (Coinbase, Binance, OKX). A minimum of 2 independent venues must respond; otherwise, the request fails closed. Spread is reported in basis points. When evaluating market regimes, the engine strictly refuses point-in-time extrapolation (<code>INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST</code>). This is an MCP client demonstration; no connection to a proprietary consumer Alexa account or Amazon certification is claimed.
+    </p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const endpointInput = document.getElementById('endpointInput');
+  const reconnectBtn = document.getElementById('reconnectBtn');
+  const symbolSelect = document.getElementById('symbolSelect');
+  const consensusBtn = document.getElementById('consensusBtn');
+  const regimeBtn = document.getElementById('regimeBtn');
+  const userBubble = document.getElementById('userBubble');
+  const alexaBubble = document.getElementById('alexaBubble');
+  const sessionIdTag = document.getElementById('sessionIdTag');
+  const telemetryPre = document.getElementById('telemetryPre');
+
+  // Determine default endpoint
+  const isNetlify = window.location.hostname.includes('netlify.app');
+  const defaultEndpoint = isNetlify ? '/.netlify/functions/amazon-mcp' : 'http://localhost:3333/mcp';
+  endpointInput.value = defaultEndpoint;
+
+  let currentSessionId = null;
+  let requestIdCounter = 1;
+
+  async function postJsonRpc(endpoint, payload, sessionId = null) {
+    const isStateless = endpoint.includes('amazon-mcp');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json, text/event-stream',
+      'Mcp-Protocol-Version': '2025-11-25',
+    };
+    if (sessionId && !isStateless) {
+      headers['Mcp-Session-Id'] = sessionId;
+    }
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!isStateless) {
+      const newSession = res.headers.get('mcp-session-id') || res.headers.get('Mcp-Session-Id');
+      if (newSession) {
+        currentSessionId = newSession;
+        sessionIdTag.textContent = `Session: ${currentSessionId.substring(0, 8)}…`;
+      }
+    } else {
+      sessionIdTag.textContent = 'Mode: Stateless MCP';
+    }
+
+    if (res.status === 202 || res.status === 204) {
+      return { status: res.status, data: null };
+    }
+
+    const data = await res.json();
+    return { status: res.status, data };
+  }
+
+  async function runMcpHandshake() {
+    const ep = endpointInput.value.trim();
+    statusDot.className = 'status-dot';
+    statusText.textContent = 'Performing MCP Handshake (initialize)…';
+    alexaBubble.textContent = `Connecting to MCP endpoint ${ep}…`;
+
+    try {
+      // 1. initialize
+      const initReq = {
+        jsonrpc: '2.0',
+        id: requestIdCounter++,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-11-25',
+          clientInfo: { name: 'velqiris-web-mcp-client', version: '1.0.0' },
+          capabilities: {}
+        }
+      };
+      
+      const initRes = await postJsonRpc(ep, initReq);
+      if (!initRes.data || initRes.data.error) {
+        throw new Error(initRes.data?.error?.message || `HTTP ${initRes.status}`);
+      }
+
+      // 2. notifications/initialized (expects HTTP 202)
+      const notifReq = {
+        jsonrpc: '2.0',
+        method: 'notifications/initialized'
+      };
+      const notifRes = await postJsonRpc(ep, notifReq, currentSessionId);
+
+      // 3. tools/list
+      const listReq = {
+        jsonrpc: '2.0',
+        id: requestIdCounter++,
+        method: 'tools/list'
+      };
+      const listRes = await postJsonRpc(ep, listReq, currentSessionId);
+      const tools = listRes.data?.result?.tools || [];
+
+      statusDot.className = 'status-dot connected';
+      statusText.textContent = `MCP Connected · ${tools.length} Tools Available (v2025-11-25)`;
+      alexaBubble.textContent = `MCP initialized (v2025-11-25). Ready for market truth queries.`;
+
+      telemetryPre.textContent = JSON.stringify({
+        lifecycle: 'HANDSHAKE_COMPLETE',
+        serverInfo: initRes.data.result.serverInfo,
+        protocolVersion: initRes.data.result.protocolVersion,
+        notificationStatus: notifRes.status,
+        discoveredTools: tools.map(t => t.name)
+      }, null, 2);
+
+    } catch (err) {
+      statusDot.className = 'status-dot error';
+      statusText.textContent = `MCP Error: ${err.message}`;
+      alexaBubble.textContent = `Could not connect to MCP server at ${ep}. Ensure the server is running (e.g. node http_mcp_server.js).`;
+      telemetryPre.textContent = JSON.stringify({ error: err.message }, null, 2);
+    }
+  }
+
+  async function executeTool(toolName) {
+    const ep = endpointInput.value.trim();
+    const symbol = symbolSelect.value;
+    
+    if (toolName === 'verify_risk_regime') {
+      userBubble.textContent = `Alexa, what is the market regime for ${symbol}?`;
+      alexaBubble.textContent = `Evaluating regime for ${symbol} via MCP tool 'verify_risk_regime'…`;
+      alexaBubble.className = 'bubble alexa';
+    } else {
+      userBubble.textContent = `Alexa, what is the verified consensus price for ${symbol}?`;
+      alexaBubble.textContent = `Querying multi-venue consensus for ${symbol} via MCP tool 'get_market_truth_consensus'…`;
+      alexaBubble.className = 'bubble alexa';
+    }
+
+    try {
+      const toolCallReq = {
+        jsonrpc: '2.0',
+        id: requestIdCounter++,
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: { symbol }
+        }
+      };
+
+      const result = await postJsonRpc(ep, toolCallReq, currentSessionId);
+      const rawText = result.data?.result?.content?.[0]?.text;
+      let parsed = null;
+      if (rawText) {
+        try { parsed = JSON.parse(rawText); } catch (_) { parsed = rawText; }
+      }
+
+      telemetryPre.textContent = JSON.stringify({
+        mcp_request: toolCallReq,
+        mcp_response: result.data
+      }, null, 2);
+
+      if (parsed && parsed.status === 'VERIFIED_MULTI_VENUE_SNAPSHOT') {
+        alexaBubble.className = 'bubble alexa';
+        alexaBubble.textContent = `The verified ${parsed.symbol} consensus is $${parsed.consensus_price_usd.toLocaleString()} across ${parsed.source_count} independent venues (spread: ${parsed.spread_basis_points} bps).`;
+      } else if (parsed && parsed.status === 'INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST') {
+        alexaBubble.className = 'bubble alexa regime-refusal';
+        alexaBubble.textContent = `Spot consensus for ${parsed.symbol} is verified at $${parsed.consensus_price_usd.toLocaleString()}, but a market regime cannot be inferred from a single point-in-time snapshot.`;
+      } else if (parsed && parsed.status === 'INSUFFICIENT_INDEPENDENT_SOURCES') {
+        alexaBubble.className = 'bubble alexa regime-refusal';
+        alexaBubble.textContent = `Fail-closed refusal: Could not reach at least 2 independent venues for ${symbol}.`;
+      } else {
+        alexaBubble.textContent = JSON.stringify(result.data?.result || result.data);
+      }
+    } catch (err) {
+      alexaBubble.textContent = `Tool execution failed: ${err.message}`;
+      telemetryPre.textContent = JSON.stringify({ error: err.message }, null, 2);
+    }
+  }
+
+  reconnectBtn.addEventListener('click', runMcpHandshake);
+  consensusBtn.addEventListener('click', () => executeTool('get_market_truth_consensus'));
+  regimeBtn.addEventListener('click', () => executeTool('verify_risk_regime'));
+
+  // Trigger initial handshake on load
+  runMcpHandshake();
+})();
+</script>
+</body>
+</html>
