@@ -10,15 +10,13 @@ async function runLiveTest() {
   console.log('File: netlify/functions/amazon-mcp.js')
   console.log('========================================================================\n')
 
-  // 1. GET status
-  console.log('1. Testing GET /status...')
+  // 1. GET is not a JSON-RPC transport request
+  console.log('1. Testing GET rejection...')
   const getRes = await amazonMcp.handler({ httpMethod: 'GET', headers: {} })
-  assert.equal(getRes.statusCode, 200)
+  assert.equal(getRes.statusCode, 405)
   const getBody = JSON.parse(getRes.body)
-  console.log('   Server:', getBody.server, 'v' + getBody.version)
-  console.log('   Protocol:', getBody.protocolVersion)
-  console.log('   Transport:', getBody.transport)
-  assert.equal(getBody.protocolVersion, '2025-11-25')
+  console.log('   GET returned:', getRes.statusCode, getBody.error)
+  assert.equal(getBody.error, 'METHOD_NOT_ALLOWED')
 
   // 2. initialize handshake
   console.log('\n2. Testing POST initialize handshake...')
@@ -43,6 +41,7 @@ async function runLiveTest() {
   console.log('   Negotiated protocol version:', initBody.result.protocolVersion)
   console.log('   Server session header returned:', initRes.headers['Mcp-Session-Id'])
   assert.equal(initBody.result.protocolVersion, '2025-11-25')
+  assert.equal(initRes.headers['Mcp-Session-Id'], undefined)
 
   // 3. notifications/initialized
   console.log('\n3. Testing POST notifications/initialized (stateless notification)...')
@@ -58,13 +57,13 @@ async function runLiveTest() {
   console.log('   Notification returned HTTP:', notifRes.statusCode, '(Accepted)')
 
   // 4. tools/list without sticky session
-  console.log('\n4. Testing POST tools/list (stateless execution across Lambda instances)...')
+  console.log('\n4. Testing POST tools/list (stateless execution across serverless instances)...')
   const toolsRes = await amazonMcp.handler({
     httpMethod: 'POST',
     headers: {
       origin: 'https://velqiris-acquisition.netlify.app',
       'mcp-protocol-version': '2025-11-25',
-      'mcp-session-id': 'different-lambda-worker-session-id',
+      'mcp-session-id': 'different-serverless-worker-session-id',
     },
     body: JSON.stringify({
       jsonrpc: '2.0',
@@ -99,17 +98,23 @@ async function runLiveTest() {
   })
   assert.equal(callBtcRes.statusCode, 200)
   const callBtcBody = JSON.parse(callBtcRes.body)
-  const btcPayload = JSON.parse(callBtcBody.result.content[0].text)
-  console.log('   Status:', btcPayload.status)
-  console.log('   Symbol:', btcPayload.symbol)
-  console.log('   Consensus Price (USD):', btcPayload.consensus_price_usd)
-  console.log('   Venues count:', btcPayload.source_count)
-  console.log('   Venue prices:', JSON.stringify(btcPayload.sources))
-  console.log('   Spread (bps):', btcPayload.spread_basis_points)
-  console.log('   Observed at:', btcPayload.observed_at)
-  assert.equal(btcPayload.symbol, 'BTC')
-  assert.ok(btcPayload.consensus_price_usd > 0)
-  assert.ok(btcPayload.source_count >= 2)
+  if (callBtcBody.result.isError) {
+    const message = callBtcBody.result.content[0].text
+    console.log('   Expected fail-closed result when fewer than two venues are reachable:', message)
+    assert.match(message, /^Failed closed: only \d+ venue\(s\) responded for BTC\. Minimum 2 required for consensus\.$/)
+  } else {
+    const btcPayload = JSON.parse(callBtcBody.result.content[0].text)
+    console.log('   Status:', btcPayload.status)
+    console.log('   Symbol:', btcPayload.symbol)
+    console.log('   Consensus Price (USD):', btcPayload.consensus_price_usd)
+    console.log('   Venues count:', btcPayload.source_count)
+    console.log('   Venue prices:', JSON.stringify(btcPayload.sources))
+    console.log('   Spread (bps):', btcPayload.spread_basis_points)
+    console.log('   Observed at:', btcPayload.observed_at)
+    assert.equal(btcPayload.symbol, 'BTC')
+    assert.ok(btcPayload.consensus_price_usd > 0)
+    assert.ok(btcPayload.source_count >= 2)
+  }
 
   // 6. tools/call verify_risk_regime (Fail-closed refusal)
   console.log('\n6. Testing POST tools/call verify_risk_regime with ETH (Fail-Closed Refusal)...')
@@ -183,8 +188,8 @@ async function runLiveTest() {
   console.log('   HTTP 400 returned correctly for version mismatch')
 
   console.log('\n========================================================================')
-  console.log('ALL LIVE FLOW TESTS PASSED!')
-  console.log('Stateless Netlify Serverless MCP endpoint is 100% operational.')
+  console.log('ALL LIVE FLOW CHECKS PASSED!')
+  console.log('The stateless handler completed the exercised workflow.')
   console.log('========================================================================\n')
 }
 

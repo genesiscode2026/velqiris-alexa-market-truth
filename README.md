@@ -1,7 +1,9 @@
 # VELQIRIS Alexa+ & Model Context Protocol (MCP) Market Truth Server
 
-A verified market truth consensus engine implementing:
-1. **Model Context Protocol (MCP)** server (`http_mcp_server.js`, `mcp_server.js`, and `netlify/functions/amazon-mcp.js`) compliant with JSON-RPC 2.0 (protocol version `2025-11-25`).
+![VELQIRIS Market Truth MCP](assets/devpost-thumbnail.png)
+
+A market truth consensus engine implementing:
+1. **Model Context Protocol (MCP)** server (`http_mcp_server.js`, `mcp_server.js`, and `netlify/functions/amazon-mcp.js`) with the JSON-RPC 2.0 and Streamable HTTP behaviors exercised by this project's tests (protocol version `2025-11-25`).
 2. **Alexa+ Web Simulation & In-Browser MCP Client** (`public/index.html` / `sale_site/alexa-simulation.html`) implementing the complete client lifecycle (`initialize` -> `notifications/initialized` -> `tools/list` -> `tools/call`).
 
 It answers spot-price questions only when at least two independent venues respond and strictly refuses to invent a market regime from a point-in-time snapshot (fail-closed).
@@ -19,15 +21,15 @@ VELQIRIS implements a standard MCP server for agentic AI architectures (Claude D
 ### Protocol Details
 - **Transports**:
   - **Local / Container Streamable HTTP**: Native Node.js HTTP server (`http_mcp_server.js`) with chunked transfer (`Transfer-Encoding: chunked`), session lifecycle tracking (`Mcp-Session-Id`), and Origin validation (403 on untrusted origins).
-  - **Serverless HTTP**: Stateless edge endpoint (`netlify/functions/amazon-mcp.js`) ensuring reliable operation across non-sticky distributed Lambda instances.
+  - **Serverless HTTP**: Stateless edge endpoint (`netlify/functions/amazon-mcp.js`) designed to operate across non-sticky serverless function instances.
   - **Standard I/O (stdio)**: CLI / desktop MCP adapter (`mcp_server.js`).
-- **Protocol Version**: `2025-11-25` (Amazon Developer & Anthropic specification)
+- **Protocol Version**: `2025-11-25` (Model Context Protocol specification)
 - **Specification**: JSON-RPC 2.0 with session tracking and version negotiation
 
 ### Tools Exposed
 - `get_market_truth_consensus`: Fetches multi-venue spot price consensus (Coinbase, Binance, OKX). Fails closed if fewer than 2 independent sources respond.
   - Schema: `{ symbol: "BTC" | "ETH" | "SOL" | "ICP" }`
-- `verify_risk_regime`: Evaluates market risk regime. Refuses to extrapolate future regimes from single snapshots (`INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST`).
+- `verify_risk_regime`: Refuses to label a market regime from a single snapshot. The public serverless response uses `status: REGIME_VERIFICATION_REFUSED` and `risk_status: INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST`.
   - Schema: `{ symbol: "BTC" | "ETH" | "SOL" | "ICP" }`
 
 ### Resources Exposed
@@ -37,8 +39,8 @@ VELQIRIS implements a standard MCP server for agentic AI architectures (Claude D
 ## Verification & Judging Deliverables
 
 - **Judge Start Here:** [`JUDGE_START_HERE.md`](./JUDGE_START_HERE.md) (Quick verification guide)
-- **MCP Compliance Report:** [`AMAZON_MCP_COMPLIANCE_REPORT.md`](./AMAZON_MCP_COMPLIANCE_REPORT.md) (40/40 automated tests pass)
-- **Developer Friction Log & Product Feedback:** [`FRICTION_LOG.md`](./FRICTION_LOG.md) (10% judging bonus track)
+- **MCP Behavior Report:** [`AMAZON_MCP_COMPLIANCE_REPORT.md`](./AMAZON_MCP_COMPLIANCE_REPORT.md) (40/40 project-owned assertions pass)
+- **Developer Friction Log & Product Feedback:** [`FRICTION_LOG.md`](./FRICTION_LOG.md) (submitted for the optional judging bonus of up to 10%)
 - **Video Demo Script & Shotlist:** [`AMAZON_VIDEO_SCRIPT.md`](./AMAZON_VIDEO_SCRIPT.md) | [`AMAZON_VIDEO_SHOTLIST.md`](./AMAZON_VIDEO_SHOTLIST.md)
 - **Smithery Registry Config:** [`smithery.yaml`](./smithery.yaml)
 
@@ -71,7 +73,7 @@ Start the MCP stdio server:
 node mcp_server.js
 ```
 
-Run the remote MCP server in a production container:
+Build and run the supplied local container:
 ```bash
 docker build -t velqiris-market-truth .
 docker run --rm -p 3333:3333 velqiris-market-truth
@@ -102,12 +104,9 @@ Or configure manually in your `claude_desktop_config.json`:
 }
 ```
 
-## Open-Source Core & Optional Deployment Package
+## Open-Source Core
 
-- **Open-source reference implementation:** This repository is MIT licensed, including commercial-use rights under the terms of the MIT License.
-- **Optional serverless/x402 source package:** A separately maintained Netlify-compatible deployment bundle with wallet-bound Base settlement, signed fulfillment, and packaged release evidence is available for 49 USDC.
-- **Settlement invariant:** The optional package accepts native USDC on Base only, through the verified checkout flow.
-- **Licensing and acquisition:** See [VELQIRIS Commercial Licensing](https://velqiris-acquisition.netlify.app/portfolio.html) for the exact package scope and current terms.
+This repository is MIT licensed, including commercial-use rights under the terms of the MIT License.
 
 ## Hackathon Disclosure
 

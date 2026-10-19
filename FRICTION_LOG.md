@@ -1,82 +1,75 @@
-# VELQIRIS — DEVELOPER FRICTION LOG & AMAZON PRODUCT FEEDBACK
-**Competition:** Amazon Alexa Developer Hackathon (Devpost #1225753)  
-**Track:** Alexa+ / Model Context Protocol (MCP)  
-**Evaluation Target:** 10% Official Judging Bonus for Technical Product Feedback  
-**Date:** October 2026  
+# VELQIRIS — DEVELOPER FRICTION LOG & PRODUCT FEEDBACK
 
----
+- **Competition:** Build, Ship, Shape: Amazon Developer Hackathon
+- **Submission:** Devpost #1225753
+- **Primary track:** Alexa+
+- **Evidence date:** October 19, 2026
+- **Purpose:** Optional friction-log evidence for the judging bonus of up to 10%
 
-## PART 1: STRUCTURED FRICTION LOG
+Every observation below comes from building or testing this repository. Suggested improvements are proposals, not claims about unpublished Amazon systems.
 
-### Incident 1: Protocol Version Asymmetry & Lack of Backward Compatibility in Early MCP Clients
-- **Exact Task:** Negotiating MCP capabilities between client and server via `initialize` RPC handshake.
-- **Exact Product / Tool:** Model Context Protocol Specification (`protocolVersion: 2025-11-25` vs `2024-11-05`) & Amazon MCP testing harnesses.
-- **Reproduction Steps:**
-  1. Client sends JSON-RPC `initialize` request with `protocolVersion: "2024-11-05"`.
-  2. Server configured for modern Streamable HTTP spec (`2025-11-25`) rejects or down-negotiates.
-  3. Client disconnects with unhandled exception rather than attempting protocol fallback.
-- **Expected Result:** MCP specification should define a formal version negotiation array (`supportedProtocolVersions: ["2025-11-25", "2024-11-05"]`) similar to TLS cipher suites, allowing automatic graceful fallback.
-- **Actual Result:** Client assumes static single string match, causing immediate session abort.
-- **Severity:** High (blocks cross-generation agent interoperability).
-- **Workaround:** Implemented explicit client protocol version inspection in `http_mcp_server.js` and structured `-32602` error payloads explaining exact version requirements.
-- **Engineering Impact:** Increased server boilerplate by ~40 lines to manage multi-version handshake edge cases.
-- **Actionable Recommendation:** Update the official MCP schema to allow `protocolVersion` to be an array of acceptable versions, with the server returning the highest mutual version in `result.protocolVersion`.
+## Friction 1 — No public Alexa+ validation client for hackathon entrants
 
----
+- **Task attempted:** Connect and validate a self-hosted MCP server against the Alexa+ development environment.
+- **Steps taken:** Reviewed the hackathon rules, resources, and FAQ; checked the listed Alexa+ Category SDK, MCP Toolkit, CLI, and Web Simulator access path.
+- **Expected result:** A public test client or simulator that could run the MCP lifecycle against a participant endpoint.
+- **Actual result:** The official FAQ states that these tools are preview-only for selected partners. Hackathon entrants are directed to demonstrate a self-hosted MCP server through their own web client or simulator.
+- **Severity:** High. It prevents device-runtime validation and makes participant-built test harnesses part of the critical path.
+- **Workaround used:** Built a browser MCP client that performs `initialize`, `notifications/initialized`, `tools/list`, and `tools/call` over Streamable HTTP. The demo labels itself as a developer simulation and makes no consumer Alexa connection or certification claim.
+- **Actionable suggestion:** Publish a read-only Alexa+ reference client for hackathons with request/response traces and a small conformance fixture. It should test lifecycle messages, protocol headers, Origin handling, tool discovery, calls, notifications, and structured errors.
 
-### Incident 2: Streamable HTTP vs Serverless Execution Deadlocks
-- **Exact Task:** Streaming chunked tool output (`Transfer-Encoding: chunked`) from a serverless Lambda / Netlify function to an Alexa agent turn.
-- **Exact Product / Tool:** AWS Lambda Node.js runtime / Netlify Functions with Streamable HTTP.
-- **Reproduction Steps:**
-  1. MCP server begins streaming tool execution progress via chunked HTTP stream.
-  2. Function runtime buffers output until function completion instead of flushing TCP segments immediately.
-  3. Alexa voice client times out after 1,200ms awaiting conversational stream.
-- **Expected Result:** Immediate chunk flushing allows voice agent to emit conversational fillers while tool executes.
-- **Actual Result:** Edge proxy buffers until response finishes, defeating the purpose of streaming.
-- **Severity:** Medium.
-- **Workaround:** Implemented dual transport in `mcp_server.js`: stateless single-turn JSON-RPC for serverless edge functions and native chunked Node.js HTTP server for dedicated hosts.
-- **Engineering Impact:** Required maintaining dual transport adapters.
-- **Actionable Recommendation:** Amazon should provide official guidance and pre-configured Lambda Response Streaming templates (`awslabs/mcp-lambda-streaming`) for MCP servers.
+## Friction 2 — Stateful MCP sessions do not map cleanly to stateless functions
 
----
+- **Task attempted:** Keep the MCP endpoint usable both as a self-hosted Node.js server and as a public serverless endpoint.
+- **Steps taken:** Implemented a stateful local Streamable HTTP server with `Mcp-Session-Id`, then exercised the same lifecycle through the Netlify function used by the browser demo.
+- **Expected result:** One transport design that behaves predictably in both long-lived and distributed serverless runtimes.
+- **Actual result:** Session state is natural in the long-lived Node.js server, while a serverless function cannot assume that later requests reach the same process. Reusing the in-memory session design would create unreliable sticky-state behavior.
+- **Severity:** High for hosted evaluation because a successful handshake could be followed by a request handled by another instance.
+- **Workaround used:** Kept the local server stateful and made the Netlify endpoint explicitly stateless. The public endpoint never emits or requires `Mcp-Session-Id`; deterministic tests assert that behavior across the full client sequence.
+- **Actionable suggestion:** Add side-by-side official examples for stateful and stateless Streamable HTTP deployments, including when session identifiers are optional and how clients should continue without them.
 
-### Incident 3: Fail-Closed Semantic Drift in Conversational LLM Synthesis
-- **Exact Task:** Returning explicit market uncertainty / refusal to predict volatility regime (`verify_risk_regime`).
-- **Exact Product / Tool:** Conversational LLM reasoning engines consuming MCP `tools/call` JSON outputs.
-- **Reproduction Steps:**
-  1. MCP tool returns `{ "status": "INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST", "regime": null }`.
-  2. LLM receives the tool response and synthesizes a speculative answer to the user anyway: *"Bitcoin seems stable right now based on current prices."*
-- **Expected Result:** Model strictly communicates that the regime cannot be calculated and refrains from narrative invention.
-- **Actual Result:** Model hallucinates qualitative regime adjectives because standard MCP schema lacks an invariant assertion signal.
-- **Severity:** Critical (in financial and medical domains).
-- **Workaround:** Injected explicit `safety_instruction` text into the tool output payload commanding the model not to quote speculative estimates.
-- **Engineering Impact:** Prompts and responses must carry defensive guardrails to prevent agent overconfidence.
-- **Actionable Recommendation:** Add a native `failClosed: true` flag to the official MCP `CallToolResult` schema that instructs host agent orchestrators to treat the response as a non-extrapolatable boundary.
+## Friction 3 — Browser security and MCP transport rules must be implemented together
 
----
+- **Task attempted:** Call the MCP endpoint directly from a browser-based Alexa+ simulation.
+- **Steps taken:** Sent JSON-RPC POST requests from the public demo, added the MCP protocol-version header, implemented the initialized notification, and tested trusted and untrusted `Origin` values.
+- **Expected result:** A documented browser recipe covering CORS preflight, allowed request headers, exposed response headers, and MCP Origin validation.
+- **Actual result:** MCP security guidance and browser CORS behavior must be combined manually. Allowing every Origin weakens DNS-rebinding protection, while omitting CORS headers prevents the real browser client from completing the handshake.
+- **Severity:** Medium. Incorrect configuration either blocks the demo or broadens the endpoint's browser attack surface.
+- **Workaround used:** Added an explicit Origin allowlist, HTTP 403 for untrusted origins, narrow CORS methods and headers, HTTP 202 with an empty body for notifications, and negative tests for each boundary.
+- **Actionable suggestion:** Publish a browser-client security checklist and reference implementation that treats Origin validation and CORS as one end-to-end configuration.
 
-## PART 2: FORMAL AMAZON PRODUCT FEEDBACK
+## Friction 4 — Public venue observations have different semantics
 
-### 1. Tools, APIs, and SDKs Used
-- Model Context Protocol (v2025-11-25) specification and JSON-RPC 2.0 schema.
-- Node.js Streamable HTTP runtime (`http_mcp_server.js`).
-- Alexa+ simulated conversational environment (`public/index.html` + `netlify/functions/consensus.js`).
-- Smithery / Glama containerized deployment manifests.
+- **Task attempted:** Produce one multi-venue spot snapshot from Coinbase, Binance, and OKX.
+- **Steps taken:** Called Coinbase's USD spot endpoint and Binance/OKX USDT endpoints, normalized asset symbols, rejected non-positive values, required two successful venues, computed the median, and reported dispersion in basis points.
+- **Expected result:** Comparable venue observations with consistent quote currency and timestamp semantics.
+- **Actual result:** The public endpoints differ in symbols and response shape, and USD and USDT are not identical units. The current public APIs also do not provide one uniform per-venue timestamp field through these selected calls.
+- **Severity:** Medium for interpretation. The result is useful as an indicative snapshot but cannot be presented as a tradeable quote or a cryptographically attested market truth.
+- **Workaround used:** The UI and submission explicitly call the result an indicative USD/USDT snapshot, disclose the venues, return the contributing values, and avoid staleness, attestation, or execution claims.
+- **Actionable suggestion:** Encourage hackathon examples to show unit normalization, per-source timestamps, staleness policy, provenance, and explicit limitations whenever agents aggregate third-party data.
 
-### 2. Purpose
-To build a zero-hallucination market truth verification server that gives Alexa+ and agentic AI models real-time, multi-venue cryptocurrency spot consensus and fails closed against ungrounded regime extrapolation.
+## Product feedback
 
-### 3. What Worked Well
-- **Standardized Tool Discovery:** `tools/list` provides an extraordinarily clean, decoupled contract for declaring tool signatures via JSON Schema.
-- **Streamable HTTP Specification:** The move toward Streamable HTTP in the 2025 specification is a major improvement over raw stdio for cloud-native deployment.
-- **Simulated Alexa Path:** The competition's inclusion of a simulated web experience path made prototype testing feasible without hardware consumer device provisioning.
+### Tools, APIs, and SDKs used
 
-### 4. What Needs Work
-- **Lack of Standard MCP Client CLI for Testing:** Developers currently have to write custom test runners (`verify_amazon_mcp.js`) to validate their servers. Amazon/Anthropic should release an official `mcp-lint` or `mcp-verify` CLI that verifies protocol compliance in CI.
-- **Voice Turn Latency Budgets:** No native audio filler protocol exists for tools that take >800ms.
+- Model Context Protocol version `2025-11-25` and JSON-RPC 2.0 for lifecycle, discovery, and tool calls.
+- Node.js 20 native HTTP and `fetch` for the stateful server and venue adapters.
+- Netlify Functions for the public stateless endpoint.
+- Coinbase, Binance, and OKX public REST endpoints for indicative spot observations.
+- A browser client for the simulated Alexa+ interaction.
 
-### 5. Onboarding Experience
-The conceptual documentation for MCP is excellent, but developer tooling is fragmented across different GitHub repositories and discord channels. Consolidating the official 2025 specification, test suites, and Streamable HTTP reference implementations in a single Amazon Developer portal would save developers significant ramp-up time.
+### What worked well
 
-### 6. Would We Use Them Again and Why?
-**Yes, absolutely.** The Model Context Protocol is rapidly becoming the universal standard for AI tool invocation. By adopting MCP, our verification engine can serve Amazon Alexa, Claude, open-source agents, and IDE tools with a single unified codebase.
+MCP tool schemas made discovery and input validation explicit. JSON-RPC errors were straightforward to exercise with deterministic tests. Node.js native APIs kept the runtime small. The hackathon's simulated-experience path allowed a complete end-to-end browser demonstration despite the restricted Alexa+ partner tooling.
+
+### What needs work
+
+Participants would benefit from an official public Alexa+ reference client, a transport conformance fixture, and paired stateful/serverless deployment examples. Browser Origin and CORS guidance should be presented as one recipe. Third-party-data examples should model unit and timestamp differences explicitly.
+
+### Onboarding experience
+
+The protocol concepts were understandable, but a reliable end-to-end implementation required reading the transport details, building a client harness, separating stateful and stateless behavior, and writing negative tests. The hackathon FAQ was essential because it clarified that participants cannot access the gated Alexa+ tools and may use their own web client.
+
+### Would we build with these tools again?
+
+**Yes.** MCP gives agent tools a clear, inspectable contract, and the simulated Alexa+ path supports meaningful prototyping. For production financial use, the next iteration would add authenticated sources, per-venue timestamps, staleness rejection, longer time-series evidence, and operational monitoring.

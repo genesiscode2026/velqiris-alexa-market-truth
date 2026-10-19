@@ -239,7 +239,7 @@
     </div>
 
     <p class="disclaimer">
-      <strong>Engineering Truth Disclosure:</strong> Spot consensus is calculated as the statistical median across independent USD/USDT spot indications (Coinbase, Binance, OKX). A minimum of 2 independent venues must respond; otherwise, the request fails closed. Spread is reported in basis points. When evaluating market regimes, the engine strictly refuses point-in-time extrapolation (<code>INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST</code>). This is an MCP client demonstration; no connection to a proprietary consumer Alexa account or Amazon certification is claimed.
+      <strong>Engineering Truth Disclosure:</strong> Spot consensus is calculated as the statistical median across independent USD/USDT spot indications (Coinbase, Binance, OKX). A minimum of 2 independent venues must respond; otherwise, the request fails closed. Spread is reported in basis points. When evaluating market regimes, the engine returns <code>REGIME_VERIFICATION_REFUSED</code> with <code>INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST</code>. This is an MCP client demonstration; no connection to a proprietary consumer Alexa account or Amazon certification is claimed.
     </p>
   </section>
 </main>

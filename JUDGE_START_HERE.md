@@ -1,23 +1,24 @@
 # JUDGE START HERE — VELQIRIS MARKET TRUTH & CONSENSUS MCP SERVER
-**Hackathon:** Amazon Alexa Developer Hackathon (Devpost #1225753)  
-**Tracks:** Alexa+ Agentic Flow / Model Context Protocol (MCP)  
-**Verification Time:** < 30 seconds  
+**Hackathon:** Build, Ship, Shape: Amazon Developer Hackathon (Devpost #1225753)
+
+**Tracks entered:** Alexa+ and Open Source Mini Challenge
+**Verification Time:** about 2 minutes
 
 ---
 
 ## 1. What Is This Project?
-An institutional-grade **Model Context Protocol (MCP)** server and **Simulated Alexa+ Interface** that connects voice and agentic AI models with real-time multi-venue market consensus.
+A **Model Context Protocol (MCP)** server and **simulated Alexa+ web interface** that gives an agent request-time, multi-venue spot observations and refuses unsupported market-regime claims.
 
 It operates under two complementary paths:
-1. **Interactive Demo (Visual / Spoken):** A simulated Alexa+ voice assistant web application that queries multi-venue consensus across Coinbase, Binance, and OKX, enforcing basis-point dispersion thresholds.
-2. **Self-Hosted Streamable HTTP MCP Server:** A Model Context Protocol server compliant with specification **v2025-11-25 or later**, operating over Streamable HTTP with chunked streaming and session handling.
+1. **Interactive Demo:** A browser MCP client that runs `initialize`, `notifications/initialized`, `tools/list`, and `tools/call`, then renders text-formatted results from Coinbase USD plus Binance and OKX USDT indications.
+2. **Self-Hosted Streamable HTTP MCP Server:** A Model Context Protocol server targeting **v2025-11-25**, with a stateful local transport and a stateless serverless transport.
 
 ---
 
-## 2. Quick Verification (Run in 1 Command)
+## 2. Quick Verification
 
 ```bash
-# 1. Run unit and acceptance test suites (23 assertions)
+# 1. Run 23 deterministic unit, negative, and integration tests
 npm test
 
 # 2. Run internal Streamable HTTP & Serverless MCP Protocol Test Suite (40 assertions)
@@ -29,7 +30,7 @@ npm run test:live
 
 ### Expected Output:
 ```
-✔ All 23 test assertions across 4 test suites PASSED.
+✔ All 23 tests across 4 test files PASSED.
 
 ========================================================================
 INTERNAL VERIFICATION COMPLETE: 40/40 ASSERTIONS PASSED
@@ -50,8 +51,8 @@ STATUS: ALL ASSERTIONS PASSED
 
 ## 4. Key Deliverables & Documentation
 
-- [Amazon MCP Compliance Report (40/40 Steps)](./AMAZON_MCP_COMPLIANCE_REPORT.md)
-- [Developer Friction Log & Product Feedback (10% Bonus Track)](./FRICTION_LOG.md)
+- [MCP Behavior Report (40/40 Project-Owned Assertions)](./AMAZON_MCP_COMPLIANCE_REPORT.md)
+- [Developer Friction Log & Product Feedback (Optional Bonus of up to 10%)](./FRICTION_LOG.md)
 - [Video Demo Script & Shotlist](./AMAZON_VIDEO_SCRIPT.md) | [Shotlist](./AMAZON_VIDEO_SHOTLIST.md)
 - [Pre-Existing Technology Disclosure](./PREEXISTING_TECHNOLOGY.md)
 - [Verification Evidence Log](./VERIFICATION_EVIDENCE.md)
