@@ -54,7 +54,7 @@ STATUS: ALL ASSERTIONS PASSED
 | Invalid Request | JSON-RPC 2.0 | Streamable HTTP | HTTP 400 with `-32600` Invalid Request | **PASS** |
 | Unknown Method | JSON-RPC 2.0 | Streamable HTTP | `-32601` Method Not Found | **PASS** |
 | Serverless GET Status | Netlify Serverless | Netlify HTTP | HTTP 200 with online status and protocol details | **PASS** |
-| Serverless Handshake | Netlify Serverless | Netlify HTTP | HTTP 200 with `2025-11-25` and Mcp-Session-Id | **PASS** |
+| Serverless Handshake | Netlify Serverless | Netlify HTTP | HTTP 200 with `2025-11-25` and no session header | **PASS** |
 | Serverless Notification | Netlify Serverless | Netlify HTTP | HTTP 202 Accepted | **PASS** |
 | Serverless Stateless Tools | Netlify Serverless | Netlify HTTP | tools/list succeeds without sticky memory map requirement | **PASS** |
 | Serverless Parameter Validation | Netlify Serverless | Netlify HTTP | tools/call enforces required symbol parameter | **PASS** |

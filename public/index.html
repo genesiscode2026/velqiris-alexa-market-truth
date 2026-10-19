@@ -401,9 +401,9 @@
       if (parsed && parsed.status === 'VERIFIED_MULTI_VENUE_SNAPSHOT') {
         alexaBubble.className = 'bubble alexa';
         alexaBubble.textContent = `The verified ${parsed.symbol} consensus is $${parsed.consensus_price_usd.toLocaleString()} across ${parsed.source_count} independent venues (spread: ${parsed.spread_basis_points} bps).`;
-      } else if (parsed && parsed.status === 'INSUFFICIENT_TIME_SERIES_FOR_REGIME_FORECAST') {
+      } else if (parsed && parsed.status === 'REGIME_VERIFICATION_REFUSED') {
         alexaBubble.className = 'bubble alexa regime-refusal';
-        alexaBubble.textContent = `Spot consensus for ${parsed.symbol} is verified at $${parsed.consensus_price_usd.toLocaleString()}, but a market regime cannot be inferred from a single point-in-time snapshot.`;
+        alexaBubble.textContent = `Regime verification refused for ${parsed.symbol}: a market regime cannot be inferred from a single point-in-time snapshot. Historical time-series data is required.`;
       } else if (parsed && parsed.status === 'INSUFFICIENT_INDEPENDENT_SOURCES') {
         alexaBubble.className = 'bubble alexa regime-refusal';
         alexaBubble.textContent = `Fail-closed refusal: Could not reach at least 2 independent venues for ${symbol}.`;
